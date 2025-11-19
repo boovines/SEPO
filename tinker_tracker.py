@@ -1,6 +1,8 @@
 import math
 import numpy as np
-from utils import MAX_LEN, MAX_TRAIN_SET_SIZE, MAX_VALID_SET_SIZE, compute_len_reward, compute_len_reward_linear, compute_repetition_penalty_reward
+
+from math_utils import is_correct 
+from utils import MAX_LEN, compute_len_reward, compute_len_reward_linear, compute_repetition_penalty_reward
 
 class TinkerHistoryTracker:
     def __init__(self, tokenizer, w_lr=1.0, type_lr="cosine", rep_ngram_size=3, rep_penalty=0.0, mode="min"):
@@ -11,8 +13,7 @@ class TinkerHistoryTracker:
         self.rep_penalty = rep_penalty
         self.mode = mode
         
-        # Initialize state (CPU side)
-        # 0 = train, 1 = eval (if needed, or just use prompt_idx directly)
+        # Initialize state
         self.lens_dict = {} 
         self.count_dict = {}
         
@@ -45,11 +46,9 @@ class TinkerHistoryTracker:
             batch_sum = sum(correct_lengths)
             batch_count = len(correct_lengths)
             
-            # If first time seeing this prompt
             if current_count == 0:
                 self.lens_dict[prompt_idx] = batch_sum / batch_count
             else:
-                # Weighted moving average
                 prev_total = current_val * current_count
                 new_total = prev_total + batch_sum
                 self.lens_dict[prompt_idx] = new_total / (current_count + batch_count)
@@ -61,10 +60,8 @@ class TinkerHistoryTracker:
         Calculates the combined reward (Correctness + Length + Repetition)
         and updates the history tracker.
         """
-        from evaluation.math_utils import is_correct # Assuming you have this locally
-
         rewards = []
-        # Tokenize all completions at once (CPU side)
+        # Tokenize all completions at once
         encodings = self.tokenizer(completions, add_special_tokens=False)
         completion_tokens = encodings["input_ids"]
 
@@ -74,7 +71,6 @@ class TinkerHistoryTracker:
             r_corr = float(is_corr)
 
             # 2. Length Reward
-            # Get current history length for this prompt (default to MAX_LEN if not seen)
             history_len = self.lens_dict.get(pid, MAX_LEN)
             seq_len = len(tokens)
             
