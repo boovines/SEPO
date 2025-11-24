@@ -1,8 +1,13 @@
 import math
+import pickle
+import os
+import logging
 import numpy as np
 
 from math_utils import is_correct 
 from utils import MAX_LEN, compute_len_reward, compute_len_reward_linear, compute_repetition_penalty_reward
+
+logger = logging.getLogger(__name__)
 
 class HistoryTracker:
     def __init__(self, tokenizer, w_lr=1.0, type_lr="cosine", rep_ngram_size=3, rep_penalty=0.0, mode="min"):
@@ -30,8 +35,8 @@ class HistoryTracker:
         else:
             raise ValueError(f"Unknown type_lr: {type_lr}")
 
-    def update_history(self, prompt_idx, correct_lengths):
-        """Updates the history of best lengths based on new correct completions."""
+    def _update_history_entry(self, prompt_idx, correct_lengths):
+        """Internal method to update the history state for a single prompt."""
         if not correct_lengths:
             return
 
@@ -55,13 +60,37 @@ class HistoryTracker:
             
             self.count_dict[prompt_idx] = current_count + batch_count
 
+    def update_batch_history(self, prompt_indices, completions, ground_truths):
+        """
+        Updates the history statistics based on the batch results.
+        This must be called AFTER rewards are calculated to avoid leakage.
+        """
+        # Tokenize all completions
+        encodings = self.tokenizer(completions, add_special_tokens=False)
+        completion_tokens = encodings["input_ids"]
+
+        # Collect correct lengths per prompt_idx
+        batch_correct_lengths = {} # pid -> list of lengths
+
+        for resp, tokens, gt, pid in zip(completions, completion_tokens, ground_truths, prompt_indices):
+            # We re-check correctness here to ensure clean separation of concerns
+            is_corr = is_correct(resp, gt, use_math_verify=self.use_math_verify)
+            
+            if float(is_corr) >= 1.0:
+                if pid not in batch_correct_lengths:
+                    batch_correct_lengths[pid] = []
+                batch_correct_lengths[pid].append(len(tokens))
+        
+        # Perform updates
+        for pid, lengths in batch_correct_lengths.items():
+            self._update_history_entry(pid, lengths)
+
     def calculate_rewards(self, prompt_indices, completions, ground_truths):
         """
-        Calculates the combined reward (Correctness + Length + Repetition)
-        and updates the history tracker.
+        Calculates the combined reward (Correctness + Length + Repetition).
+        Pure function: DOES NOT update history.
         """
         rewards = []
-        # Tokenize all completions at once
         encodings = self.tokenizer(completions, add_special_tokens=False)
         completion_tokens = encodings["input_ids"]
 
@@ -90,8 +119,32 @@ class HistoryTracker:
             total_reward = r_corr + r_len + r_rep
             rewards.append(total_reward)
 
-            # Update History (if correct)
-            if r_corr >= 1.0:
-                self.update_history(pid, [seq_len])
-
         return rewards
+
+    def save_state(self, path):
+        """Saves the history state to a file."""
+        state = {
+            "lens_dict": self.lens_dict,
+            "count_dict": self.count_dict
+        }
+        try:
+            with open(path, 'wb') as f:
+                pickle.dump(state, f)
+            logger.info(f"Tracker state saved to {path}")
+        except Exception as e:
+            logger.error(f"Failed to save tracker state: {e}")
+
+    def load_state(self, path):
+        """Loads the history state from a file."""
+        if not os.path.exists(path):
+            logger.warning(f"No tracker state found at {path}, starting fresh.")
+            return
+        
+        try:
+            with open(path, 'rb') as f:
+                state = pickle.load(f)
+            self.lens_dict = state.get("lens_dict", {})
+            self.count_dict = state.get("count_dict", {})
+            logger.info(f"Tracker state loaded from {path}")
+        except Exception as e:
+            logger.error(f"Failed to load tracker state: {e}")

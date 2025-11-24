@@ -6,3 +6,4 @@ torch>=2.0.0
 numpy
 math-verify
 chz
+wandb
