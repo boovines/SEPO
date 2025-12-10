@@ -11,6 +11,8 @@ import tinker_cookbook.renderers as renderers
 from tinker_cookbook.tokenizer_utils import get_tokenizer
 from tqdm import tqdm
 
+import sys
+sys.path.insert(0, '..')
 from prompting_utils import SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -227,6 +229,24 @@ def main(config: Config):
     logger.info(f"Correct count: {correct_count}")
     logger.info(f"Total count: {total_count}")
     logger.info(f"Average token length: {average_token_length:.2f} tokens")
+    
+    # Save results to JSON
+    import datetime
+    results = {
+        "timestamp": datetime.datetime.now().isoformat(),
+        "dataset": "ReClor",
+        "data_path": config.data_path,
+        "accuracy": pass_at_1,
+        "correct": correct_count,
+        "total": total_count,
+        "avg_token_length": average_token_length
+    }
+    results_file = "reclor_eval_results.json"
+    with open(results_file, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"\n=== Final Results ===")
+    print(f"Pass@1: {pass_at_1:.4f} ({correct_count}/{total_count})")
+    print(f"Results saved to {results_file}")
 
 if __name__ == "__main__":
     chz.nested_entrypoint(main)

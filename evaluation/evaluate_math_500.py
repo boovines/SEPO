@@ -1,4 +1,5 @@
 import chz
+import json
 from datasets import load_dataset
 import tinker
 from tinker import types
@@ -8,6 +9,8 @@ from tinker_cookbook.tokenizer_utils import get_tokenizer
 import logging
 from tqdm import tqdm
 
+import sys
+sys.path.insert(0, '..')
 from prompting_utils import SYSTEM_PROMPT
 from math_utils import is_correct
 
@@ -103,8 +106,8 @@ def evaluate(client, dataset, renderer, config):
     
     pbar.close()
             
-    pass_at_1 = correct_count / total_count
-    average_token_length = sum(token_lengths) / len(token_lengths)
+    pass_at_1 = correct_count / total_count if total_count > 0 else 0.0
+    average_token_length = sum(token_lengths) / len(token_lengths) if token_lengths else 0.0
     return pass_at_1, average_token_length, correct_count, total_count
 
 
@@ -156,6 +159,22 @@ def main(config: Config):
     logger.info(f"Total count: {total_count}")
     logger.info(f"Average token length: {average_token_length:.2f} tokens")
     
+    # Save results to JSON
+    import datetime
+    results = {
+        "timestamp": datetime.datetime.now().isoformat(),
+        "dataset": "MATH-500",
+        "accuracy": pass_at_1,
+        "correct": correct_count,
+        "total": total_count,
+        "avg_token_length": average_token_length
+    }
+    results_file = "math500_eval_results.json"
+    with open(results_file, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"\n=== Final Results ===")
+    print(f"Pass@1: {pass_at_1:.4f} ({correct_count}/{total_count})")
+    print(f"Results saved to {results_file}")
 
 if __name__ == "__main__":
     chz.nested_entrypoint(main)
