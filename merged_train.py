@@ -67,30 +67,28 @@ class Config:
 
 # --- Unified Data Processing ---
 def prepare_merged_example(example, idx):
-    """
-    detects source and applies Tagging for the router.
-    """
-    source = example.get("dataset_source", "HAPO") # Default to HAPO if missing
+    source = example.get("dataset_source", "HAPO")
     q_str = ""
     tagged_gt = ""
 
     if source == "ReClor":
-        # Format: Context + Question + Options
         options = example.get('answers', [])
         labels = ['A', 'B', 'C', 'D']
         opt_str = "\n".join([f"{l}) {opt}" for l, opt in zip(labels, options)])
         q_str = f"{example.get('context','')}\n\n{example.get('question','')}\n\nOptions:\n{opt_str}\n\nAnswer:"
         
-        # Convert numeric label to Letter
         label = example.get("label")
         real_gt = chr(ord('A') + int(label)) if label is not None else ""
         tagged_gt = f"RECLOR:::{real_gt}"
 
     elif source == "s1K":
+        # Format S1K specifically with cot_type
         q_str = example.get("question", "")
-        # s1K answers are in 'solution' usually
         real_gt = str(example.get("solution", ""))
-        tagged_gt = f"S1K:::{real_gt}"
+        cot_type = example.get("cot_type", "math") # Default to math if missing
+        
+        # Tag format: S1K:type:::solution
+        tagged_gt = f"S1K:{cot_type}:::{real_gt}"
 
     else: # HAPO
         q_str = example.get("question", "")
