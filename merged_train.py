@@ -27,8 +27,8 @@ class Config:
     wandb_name: str | None = "hapo_merged"
     
     # --- Data & Paths ---
-    train_dataset: str = "merged_train.json" 
-    valid_dataset: str = "merged_val.json"
+    train_dataset: str = "datasets/merged_train.json" 
+    valid_dataset: str = "datasets/merged_val.json"
     log_path: str = "../tinker-experiments/hapo-merged"
 
     # --- Model ---
@@ -389,7 +389,7 @@ def main(config: Config):
                     eps=1e-8
                 )
                 
-                _ = training_client.optim_step(adam_params).result()
+                _ = training_client.optim_step(current_adam_params).result()
                 
                 final_r = sum(accum_metrics["reward"])/len(accum_metrics["reward"])
                 final_k = sum(accum_metrics["kl"])/len(accum_metrics["kl"])
