@@ -1,0 +1,9 @@
+{
+  "timestamp": "2025-12-10T10:57:56.565480",
+  "dataset": "ReClor",
+  "data_path": "../datasets/test_reclor.json",
+  "accuracy": 0.96,
+  "correct": 48,
+  "total": 50,
+  "avg_token_length": 860.52
+}
