@@ -396,11 +396,11 @@ def main(config: Config):
                     "progress/global_step": global_step,
                     "progress/epoch": epoch + 1,
                     "optim/lr": current_lr,
-                    "reward/mean": final_reward,
-                    "metrics/kl": final_kl
+                    "reward/mean": final_r,
+                    "metrics/kl": final_k
                 }
                 ml_logger.log_metrics(metrics, step=global_step)
-                logger.info(f"Step {global_step} | LR: {current_lr:.2e} | Reward: {final_reward:.4f} | KL: {final_kl:.4f}")
+                logger.info(f"Step {global_step} | LR: {current_lr:.2e} | Reward: {final_r:.4f} | KL: {final_k:.4f}")
                 
                 accum_metrics = {"reward": [], "kl": []}
                 global_step += 1
