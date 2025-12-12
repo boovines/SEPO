@@ -1,0 +1,8 @@
+{
+  "timestamp": "2025-12-11T21:23:09.106662",
+  "dataset": "AIME-2024",
+  "accuracy": 0.6,
+  "correct": 18,
+  "total": 30,
+  "avg_token_length": 7409.7
+}

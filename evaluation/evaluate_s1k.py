@@ -409,10 +409,10 @@ if __name__ == "__main__":
     training_client = service_client.create_lora_training_client(base_model=model_name, rank=8)
     
     # Qwen3-4B-Instruct tuned on original HAPO dataset
-    # training_client.load_state("tinker://d88742cc-b842-58bd-9c6e-16281f28b3a0:train:0/weights/000120")
+    training_client.load_state("tinker://d88742cc-b842-58bd-9c6e-16281f28b3a0:train:0/weights/000120")
 
     # Qwen3-4B-Instruct tuning on mixed dataset
-    training_client.load_state("tinker://8cd9fd36-35ab-530f-9226-e9be0f396858:train:0/weights/000120")
+    # training_client.load_state("tinker://8cd9fd36-35ab-530f-9226-e9be0f396858:train:0/weights/000120")
 
     sampling_client = training_client.save_weights_and_get_sampling_client(name="HAPO")
     logger.info(f"Created sampling client for HAPO model")
@@ -448,7 +448,7 @@ if __name__ == "__main__":
         "avg_token_length": average_token_length,
         "per_type_results": per_type_results
     }
-    results_file = "s1k_eval_results.json"
+    results_file = "s1k_eval_results_new.json"
     with open(results_file, "w") as f:
         json.dump(results, f, indent=2)
     print(f"Results saved to {results_file}")

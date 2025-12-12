@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-12-11T20:31:13.968014",
+  "dataset": "S1K",
+  "data_path": "../datasets/test_s1k.json",
+  "accuracy": 0.22,
+  "correct": 11,
+  "total": 50,
+  "avg_token_length": 4572.34,
+  "per_type_results": {
+    "math": {
+      "accuracy": 0.38095238095238093,
+      "correct": 8,
+      "total": 21
+    },
+    "science": {
+      "accuracy": 0.14285714285714285,
+      "correct": 3,
+      "total": 21
+    },
+    "crossword": {
+      "accuracy": 0.0,
+      "correct": 0,
+      "total": 8
+    }
+  }
+}

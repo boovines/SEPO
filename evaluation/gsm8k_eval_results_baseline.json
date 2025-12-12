@@ -1,0 +1,8 @@
+{
+  "timestamp": "2025-12-11T19:54:46.605222",
+  "dataset": "GSM8K",
+  "accuracy": 0.92,
+  "correct": 46,
+  "total": 50,
+  "avg_token_length": 366.22
+}

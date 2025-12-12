@@ -262,7 +262,7 @@ def main(config: Config):
         "total": total_count,
         "avg_token_length": average_token_length
     }
-    results_file = "reclor_eval_results.json"
+    results_file = "reclor_eval_results_new.json"
     with open(results_file, "w") as f:
         json.dump(results, f, indent=2)
     print(f"\n=== Final Results ===")
